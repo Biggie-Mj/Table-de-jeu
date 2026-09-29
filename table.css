@@ -11,3 +11,88 @@ html,body{background:#0b121c;color:var(--text);font:14px/1.45 -apple-system,Blin
 @media(max-width:760px){.prep-row{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.prep-row>div:first-child{grid-column:1/-1}.prep-row label{font-size:10px}.prep-row input{width:100%}.prep-row button{padding:5px;font-size:11px}.prep-row .boss-toggle{min-width:0}}
 
 .table-detail-open .quickbar{z-index:86}
+
+/* =========================================================
+   ENCOUNTER V4.1 — Icônes automatiques de types de créatures
+   Les 28 PNG sont normalisés sur 384×384, avec une zone utile
+   maximale de 320×320 : aucune pointe ne touche le bord du fichier.
+   ========================================================= */
+.creature-type-icon{
+  display:block;flex:0 0 auto;object-fit:contain;object-position:center;
+  pointer-events:none;user-select:none;-webkit-user-drag:none;
+  filter:drop-shadow(0 2px 3px rgba(0,0,0,.42));
+}
+.library-title.has-creature-icon{
+  display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;
+  column-gap:9px;row-gap:2px;min-width:0;
+}
+.library-title.has-creature-icon>.library-creature-icon{grid-column:1;grid-row:1}
+.library-title.has-creature-icon>h3{grid-column:2;grid-row:1;min-width:0;overflow-wrap:anywhere}
+.library-title.has-creature-icon>.library-title-badges,
+.library-title.has-creature-icon>.cr-badge{grid-column:3;grid-row:1}
+.library-creature-icon{width:44px;height:44px}
+
+.prep-row>div:first-child.has-creature-icon{
+  display:grid;grid-template-columns:40px minmax(0,1fr);align-items:center;
+  column-gap:9px;min-width:0;
+}
+.prep-row>div:first-child.has-creature-icon>.prep-creature-icon{grid-column:1;grid-row:1 / span 2}
+.prep-row>div:first-child.has-creature-icon>strong,
+.prep-row>div:first-child.has-creature-icon>small{grid-column:2;min-width:0}
+.prep-creature-icon{width:40px;height:40px}
+
+.table-name.has-creature-icon{
+  display:grid;grid-template-columns:40px minmax(0,1fr);align-items:center;
+  column-gap:8px;min-width:0;
+}
+.table-name.has-creature-icon>.combat-creature-icon{grid-column:1;grid-row:1 / span 3}
+.table-name.has-creature-icon>strong,
+.table-name.has-creature-icon>.table-meta,
+.table-name.has-creature-icon>.table-conditions{grid-column:2;min-width:0}
+.combat-creature-icon{width:40px;height:40px}
+
+.combat-ident.has-creature-icon{
+  display:grid;grid-template-columns:38px minmax(0,1fr);align-items:center;
+  column-gap:8px;min-width:0;
+}
+.combat-ident.has-creature-icon>.combat-creature-icon{grid-column:1;grid-row:1 / span 2}
+.combat-ident.has-creature-icon>:not(.creature-type-icon){grid-column:2;min-width:0}
+
+.preview-head>div:first-child.has-creature-icon,
+.detail-header>div:first-child.has-creature-icon{
+  display:grid;grid-template-columns:56px minmax(0,1fr);align-items:center;
+  column-gap:10px;min-width:0;
+}
+.preview-head>div:first-child.has-creature-icon>.detail-creature-icon,
+.detail-header>div:first-child.has-creature-icon>.detail-creature-icon{grid-column:1;grid-row:1 / span 4}
+.preview-head>div:first-child.has-creature-icon>:not(.creature-type-icon),
+.detail-header>div:first-child.has-creature-icon>:not(.creature-type-icon){grid-column:2;min-width:0}
+.detail-creature-icon{width:56px;height:56px}
+
+.init-chip.has-creature-icon{display:flex;align-items:center;gap:5px}
+.initiative-creature-icon{width:22px;height:22px;margin:-1px 0;flex:0 0 22px}
+.init-chip.has-creature-icon>span{min-width:0}
+
+@media(max-width:760px){
+  .library-title.has-creature-icon{grid-template-columns:40px minmax(0,1fr) auto;column-gap:7px}
+  .library-creature-icon{width:40px;height:40px}
+  .prep-row>div:first-child.has-creature-icon{grid-template-columns:36px minmax(0,1fr);column-gap:7px}
+  .prep-creature-icon{width:36px;height:36px}
+  .table-name.has-creature-icon{grid-template-columns:32px minmax(0,1fr);column-gap:6px}
+  .combat-creature-icon{width:32px;height:32px}
+  .preview-head>div:first-child.has-creature-icon,.detail-header>div:first-child.has-creature-icon{grid-template-columns:46px minmax(0,1fr);column-gap:7px}
+  .detail-creature-icon{width:46px;height:46px}
+}
+@media(max-width:380px){
+  .table-name.has-creature-icon{grid-template-columns:28px minmax(0,1fr);column-gap:5px}
+  .combat-creature-icon{width:28px;height:28px}
+}
+.boss-toggle:disabled{opacity:.82;cursor:default;background:#7e2228;color:#fff;border-color:#df5a62}
+
+/* V4.1 — sur les téléphones étroits, le pictogramme de l'app suffit :
+   évite que le nom ENCOUNTER soit tronqué entre les commandes de combat. */
+@media(max-width:430px){
+  .brand>div{display:none}
+  .brand{min-width:34px;gap:0}
+  .topbar{grid-template-columns:34px minmax(0,1fr) auto}
+}

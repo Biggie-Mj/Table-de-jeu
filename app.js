@@ -1,7 +1,7 @@
 'use strict';
 
 const STORAGE_KEY = 'encounter-console-v1'; // compatibilité V1/V2.x
-const APP_VERSION = '4.0';
+const APP_VERSION = '4.1';
 const BACKUP_KEY = 'encounter-console-backups-v3';
 const BACKUP_INTERVAL = 5*60*1000;
 const ABILITIES = ['FOR','DEX','CON','INT','SAG','CHA'];
@@ -484,7 +484,7 @@ function renderLibrary(){
 }
 
 function targetRule(a){if(a.target&&a.target!=='auto')return a.target;if(a.kind==='heal')return'ally';if(['attack','save','recharge','multiattack'].includes(a.kind))return'enemy';return'none';}
-function participantSide(p){if(isLair(p)){const owner=state.encounter.participants.find(x=>x.id===p.lairOwnerId);return owner?participantSide(owner):'enemy';}return participantRole(p)==='enemy'||participantRole(p)==='boss'?'enemy':'ally';}
+function participantSide(p){if(isLair(p)){const owner=state.encounter.participants.find(x=>x.id===p.lairOwnerId);return owner?participantSide(owner):'enemy';}const m=modelFor(p);if(m?.category==='character'||m?.category==='companion'||m?.category==='npc'||p?.kind==='player'||p?.kind==='ally')return'ally';return'enemy';}
 function eligibleTarget(actor,target,a){if(!actor||!target||isLair(target)||target.hp<=0&&a.kind!=='heal')return false;const rule=targetRule(a);if(rule==='any')return true;if(rule==='self')return actor.id===target.id;if(rule==='ally')return participantSide(actor)===participantSide(target);if(rule==='enemy')return participantSide(actor)!==participantSide(target);return false;}
 function targetClassFor(p){if(!ui.targeting||isLair(p))return'';const actor=state.encounter.participants.find(x=>x.id===ui.targeting.actorId),a=currentTargetingAbility();return eligibleTarget(actor,p,a)?'target-eligible':'target-ineligible';}
 function currentTargetingAbility(){if(!ui.targeting)return null;const actor=state.encounter.participants.find(x=>x.id===ui.targeting.actorId),m=modelFor(actor);if(!m)return null;if(ui.targeting.steps?.length){const id=ui.targeting.steps[ui.targeting.step];return [...m.actions,...m.reactions,...m.legendaryActions,...m.lairActions].find(x=>x.id===id)||null;}return [...m.actions,...m.reactions,...m.legendaryActions,...m.lairActions,...m.traits].find(x=>x.id===ui.targeting.abilityId)||null;}
@@ -583,8 +583,8 @@ function renderGroupCard(members,active){
 }
 
 const renderPrepV25=renderPrep;
-renderPrep=function(){renderPrepV25();$$('#prepParticipants .prep-row').forEach(row=>{const id=row.querySelector('[data-select]')?.dataset.select||row.dataset.select;if(!id)return;const p=state.encounter.participants.find(x=>x.id===id),m=modelFor(p);if(!p||isLair(p)||!(m?.category==='enemy'||p.kind==='enemy'))return;const remove=row.querySelector('[data-remove]');if(!remove)return;const b=document.createElement('button');b.type='button';b.className=`boss-toggle small ${isBossParticipant(p)?'active':''}`;b.dataset.toggleBoss=id;b.textContent=isBossParticipant(p)?'BOSS ✓':'BOSS';remove.before(b);});};
-function toggleBossInstance(id){const p=state.encounter.participants.find(x=>x.id===id);if(!p||isLair(p))return;mutate(()=>p.bossOverride=!p.bossOverride,`${p.name} ${p.bossOverride?'devient':'cesse d’être'} un BOSS pour cette rencontre.`);}
+renderPrep=function(){renderPrepV25();$$('#prepParticipants .prep-row').forEach(row=>{const id=row.querySelector('[data-select]')?.dataset.select||row.dataset.select;if(!id)return;const p=state.encounter.participants.find(x=>x.id===id),m=modelFor(p);if(!p||isLair(p)||!(m?.category==='enemy'||p.kind==='enemy'))return;const remove=row.querySelector('[data-remove]');if(!remove)return;const permanent=!!(m?.isBoss||m?.legendaryActions?.length),b=document.createElement('button');b.type='button';b.className=`boss-toggle small ${isBossParticipant(p)?'active':''}`;b.dataset.toggleBoss=id;b.textContent=isBossParticipant(p)?'BOSS ✓':'BOSS';b.disabled=permanent;b.title=permanent?'Boss défini sur la fiche':'Basculer le statut BOSS pour cette rencontre';remove.before(b);});};
+function toggleBossInstance(id){const p=state.encounter.participants.find(x=>x.id===id);if(!p||isLair(p))return;const m=modelFor(p),permanent=!!(m?.isBoss||m?.legendaryActions?.length);if(permanent)return toast(`${p.name} est défini comme BOSS sur sa fiche.`);mutate(()=>p.bossOverride=!p.bossOverride,`${p.name} ${p.bossOverride?'devient':'cesse d’être'} un BOSS pour cette rencontre.`);}
 
 const renderDetailV25=renderDetail;
 renderDetail=function(){renderDetailV25();const p=selectedParticipant();if(!p||isLair(p))return;const h=$('#activeDetail .detail-header h2');if(h&&isBossParticipant(p)&&!h.querySelector('.boss-name-badge'))h.insertAdjacentHTML('beforeend',' <span class="boss-name-badge">BOSS</span>');};
@@ -655,10 +655,18 @@ showActionPopup=function(msg,title='Résolution'){
 $('#actionPopup')?.addEventListener('click',()=>{clearTimeout(showActionPopup.t);$('#actionPopup').classList.remove('show');});
 
 function openParticipantEditor(id){
-  const p=state.encounter.participants.find(x=>x.id===id);if(!p||isLair(p))return;const f=$('#participantEditorForm');f.elements.participantId.value=p.id;f.elements.name.value=p.name;f.elements.kind.value=p.kind==='player'?'player':p.kind==='ally'?'ally':'enemy';f.elements.ac.value=effectiveAc(p);f.dataset.originalAc=String(effectiveAc(p));f.elements.hp.value=p.hp;f.elements.maxHp.value=p.maxHp;f.elements.tempHp.value=p.tempHp||0;f.elements.initiative.value=p.initiative;f.elements.speedOverride.value=p.speedOverride||'';f.elements.bossOverride.checked=!!p.bossOverride;const m=modelFor(p),hint=$('#participantEditorHint');hint.textContent=`${m?`Modèle : ${m.name}. `:''}Les changements ci-dessus ne modifient que cette instance${p.groupId?' du groupe':''}.`;$('#participantEditorDialog').showModal();
+  const p=state.encounter.participants.find(x=>x.id===id);if(!p||isLair(p))return;
+  const f=$('#participantEditorForm'),m=modelFor(p),permanent=!!(m?.isBoss||m?.legendaryActions?.length),enemyInstance=p.kind==='enemy'||m?.category==='enemy';
+  f.elements.participantId.value=p.id;f.elements.name.value=p.name;f.elements.kind.value=p.kind==='player'?'player':p.kind==='ally'?'ally':'enemy';f.elements.ac.value=effectiveAc(p);f.dataset.originalAc=String(effectiveAc(p));f.elements.hp.value=p.hp;f.elements.maxHp.value=p.maxHp;f.elements.tempHp.value=p.tempHp||0;f.elements.initiative.value=p.initiative;f.elements.speedOverride.value=p.speedOverride||'';
+  f.elements.bossOverride.checked=permanent||!!p.bossOverride;f.elements.bossOverride.disabled=permanent||!enemyInstance;
+  const hint=$('#participantEditorHint');
+  hint.textContent=permanent?`${m?`Modèle : ${m.name}. `:''}Le statut BOSS est imposé par la fiche et ne peut pas être retiré sur cette instance.`:`${m?`Modèle : ${m.name}. `:''}Les changements ci-dessus ne modifient que cette instance${p.groupId?' du groupe':''}.`;
+  $('#participantEditorDialog').showModal();
 }
 function saveParticipantInstance(){
-  const f=$('#participantEditorForm'),p=state.encounter.participants.find(x=>x.id===f.elements.participantId.value);if(!p)return;const maxHp=Math.max(1,Number(f.elements.maxHp.value)||1),hp=Math.max(0,Math.min(maxHp,Number(f.elements.hp.value)||0));mutate(()=>{p.name=f.elements.name.value.trim()||p.name;p.kind=f.elements.kind.value;const newAc=Math.max(0,Number(f.elements.ac.value)||0),originalAc=Number(f.dataset.originalAc);if(p.acOverride!=null||newAc!==originalAc)p.acOverride=newAc;else p.ac=newAc;p.maxHp=maxHp;p.hp=hp;p.tempHp=Math.max(0,Number(f.elements.tempHp.value)||0);p.initiative=Number(f.elements.initiative.value)||0;p.speedOverride=f.elements.speedOverride.value.trim();p.bossOverride=!!f.elements.bossOverride.checked;checkPhaseTransition(p);},`${p.name} — instance de combat modifiée.`);$('#participantEditorDialog').close();
+  const f=$('#participantEditorForm'),p=state.encounter.participants.find(x=>x.id===f.elements.participantId.value);if(!p)return;
+  const m=modelFor(p),permanent=!!(m?.isBoss||m?.legendaryActions?.length),maxHp=Math.max(1,Number(f.elements.maxHp.value)||1),hp=Math.max(0,Math.min(maxHp,Number(f.elements.hp.value)||0));
+  mutate(()=>{p.name=f.elements.name.value.trim()||p.name;p.kind=f.elements.kind.value;const newAc=Math.max(0,Number(f.elements.ac.value)||0),originalAc=Number(f.dataset.originalAc);if(p.acOverride!=null||newAc!==originalAc)p.acOverride=newAc;else p.ac=newAc;p.maxHp=maxHp;p.hp=hp;p.tempHp=Math.max(0,Number(f.elements.tempHp.value)||0);p.initiative=Number(f.elements.initiative.value)||0;p.speedOverride=f.elements.speedOverride.value.trim();if(!permanent)p.bossOverride=p.kind==='enemy'&&!!f.elements.bossOverride.checked;checkPhaseTransition(p);},`${p.name} — instance de combat modifiée.`);$('#participantEditorDialog').close();
 }
 $('#participantEditorForm')?.addEventListener('submit',e=>{e.preventDefault();saveParticipantInstance();});
 addEventListener('click',e=>{const b=e.target.closest('[data-edit-participant]');if(!b)return;e.preventDefault();e.stopImmediatePropagation();openParticipantEditor(b.dataset.editParticipant);},true);
@@ -707,12 +715,12 @@ renderDetail=function(){renderDetailV3BeforeBoost();const p=selectedParticipant(
    ENCOUNTER V3.6 — Correctifs ergonomiques
    ========================================================= */
 
-// Pop-up : 6 secondes, centré en haut, fermeture immédiate au toucher.
+// Pop-up : 5 secondes, fermeture immédiate au toucher.
 showActionPopup=function(msg,title='Résolution'){
   const box=$('#actionPopup');if(!box)return;
   $('#actionPopupTitle').textContent=title;$('#actionPopupText').textContent=msg;
   box.classList.add('show');clearTimeout(showActionPopup.t);
-  showActionPopup.t=setTimeout(()=>box.classList.remove('show'),6000);
+  showActionPopup.t=setTimeout(()=>box.classList.remove('show'),5000);
 };
 
 // Surbrillance cible : 2,5 secondes.

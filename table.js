@@ -18,7 +18,7 @@ function tableRow(p,active){
  return `<article class="table-row combat-card ${targetClassFor(p)} ${flashClassFor(p)} ${p.id===active?.id?'active':''} ${selected?'selected':''} ${chosen?'multi-selected':''} ${p.hp<=0&&!lair?'down':''}" data-row-id="${esc(p.id)}">
  <button class="row-select" ${select} aria-label="${ui.multiMode?'Cibler':'Sélectionner'} ${esc(p.name)}" aria-pressed="${ui.multiMode?chosen:selected}"></button>
  <span class="table-init">${ui.multiMode&&!lair?(chosen?'☑':'☐'):p.initiative}</span>
- <div class="table-name"><strong>${esc(p.name)}</strong><div class="table-meta"><span class="table-role ${p.kind}">${lair?'REPAIRE':roleLabel(p)}</span>${p.id===active?.id?'<span class="playing-tag">À JOUER</span>':''}${!lair&&isBossParticipant(p)?'<span class="playing-tag">BOSS</span>':''}${!lair?economy:''}</div>
+ <div class="table-name"><strong>${esc(p.name)}</strong><div class="table-meta"><span class="table-role ${p.kind}">${lair?'REPAIRE':roleLabel(p)}</span>${p.id===active?.id?'<span class="playing-tag">À JOUER</span>':''}${!lair?economy:''}</div>
  ${(p.conditions.length||phase||p.hp<=0&&!lair)?`<div class="table-conditions">${p.hp<=0&&!lair?'<span class="table-condition zero">À 0 PV</span>':''}${phase?`<span class="table-condition">${esc(phase.name)}</span>`:''}${p.conditions.map(c=>`<span class="table-condition" title="${esc(conditionDurationLabel(c))}">${esc(c.name)}${conditionShort(c)}</span>`).join('')}</div>`:''}</div>
  <div class="table-hp ${hpClass(p)}">${lair?'<small>Action<br>de repaire</small>':`<div><b>${p.hp}</b><small> / ${p.maxHp}</small></div>${p.tempHp?`<em>+${p.tempHp} temp.</em>`:''}<div class="table-health"><i style="width:${hpPct(p)}%"></i></div>`}</div>
  <div class="table-ac">${lair?'—':effectiveAc(p)}</div>
@@ -31,12 +31,12 @@ renderCombat=function(){
  }).join(''):'<div class="table-empty"><span>⚔</span><h2>La table est prête.</h2><p>Ajoute tes personnages et adversaires pour commencer.</p><button id="btnEmptyLibrary" class="primary">+ Ajouter des combattants</button></div>';
 };
 const tableOriginalPrep=renderPrep;
-renderPrep=function(){tableOriginalPrep();for(const row of $$('#prepParticipants .prep-row')){const p=state.encounter.participants.find(p=>p.id===row.dataset.select);if(p&&!isLair(p))row.querySelector('[data-remove]')?.insertAdjacentHTML('beforebegin',`<button class="ghost small" data-edit-participant="${esc(p.id)}">Modifier</button>`);}};
+renderPrep=function(){tableOriginalPrep();for(const row of $$('#prepParticipants .prep-row')){const p=state.encounter.participants.find(p=>p.id===row.dataset.select);if(p&&!isLair(p)&&!row.querySelector('[data-edit-participant]'))row.querySelector('[data-remove]')?.insertAdjacentHTML('beforebegin',`<button class="ghost small" data-edit-participant="${esc(p.id)}">Modifier</button>`);}};
 const tableOriginalDetail=renderDetail;
 renderDetail=function(){
  tableOriginalDetail();const p=selectedParticipant();if(!p)return;
  const eyebrow=$('#activeDetail .detail-header .eyebrow');if(eyebrow)eyebrow.textContent=p.id===activeParticipant()?.id?'À JOUER · FICHE':'CIBLE SÉLECTIONNÉE · FICHE';
- const head=$('#activeDetail .detail-header');if(head&&!isLair(p))head.insertAdjacentHTML('beforeend',`<button class="ghost small" data-edit-participant="${esc(p.id)}" aria-label="Modifier ${esc(p.name)}">Modifier</button>`);
+ const head=$('#activeDetail .detail-header');if(head&&!isLair(p)&&!head.querySelector('[data-edit-participant]'))head.insertAdjacentHTML('beforeend',`<button class="ghost small" data-edit-participant="${esc(p.id)}" aria-label="Modifier ${esc(p.name)}">Modifier</button>`);
  const conditions=$('#activeDetail .detail-tabs');if(conditions&&p.conditions.length)conditions.insertAdjacentHTML('beforebegin',`<button class="detail-condition-summary" data-open-condition="${esc(p.id)}">${p.conditions.map(c=>esc(c.name)+conditionShort(c)).join(' · ')} · gérer</button>`);
 };
 const tableOriginalQuick=renderQuickbar;
@@ -75,7 +75,7 @@ render=function(){
 };
 // Non-modal feedback: the persistent journal line retains the complete result.
 showActionPopup=function(msg,title='Résolution'){
- const box=$('#actionPopup');$('#actionPopupTitle').textContent=title;$('#actionPopupText').textContent=msg;box.classList.add('show');clearTimeout(showActionPopup.t);showActionPopup.t=setTimeout(()=>box.classList.remove('show'),2200);
+ const box=$('#actionPopup');$('#actionPopupTitle').textContent=title;$('#actionPopupText').textContent=msg;box.classList.add('show');clearTimeout(showActionPopup.t);showActionPopup.t=setTimeout(()=>box.classList.remove('show'),5000);
 };
 function openTableDetail(id){if(id)state.encounter.selectedId=id;tableDetailOpen=true;saveState();render();$('#btnCloseDetail').focus();}
 $('#btnMobileDetail').addEventListener('click',()=>openTableDetail());

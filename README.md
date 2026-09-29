@@ -1,6 +1,6 @@
-# ENCOUNTER V4 — Table de jeu
+# ENCOUNTER V4.1 — Table de jeu
 
-Nouvelle version de la console V3.6.1 fournie, conçue pour suivre le combat tout en gardant son attention sur la table réelle.
+Version V4.1 de la console, conçue pour suivre le combat tout en gardant son attention sur la table réelle. Elle ajoute notamment les icônes automatiques des 14 types de créatures D&D 5e et leurs variantes BOSS.
 
 ## Utilisation rapide
 
@@ -15,11 +15,11 @@ Nouvelle version de la console V3.6.1 fournie, conçue pour suivre le combat tou
 
 ## Installer sur GitHub Pages
 
-Décompresse cette archive puis remplace les fichiers de la console à la racine du dépôt existant. Ajoute bien les deux nouveaux fichiers **table.css** et **table.js**, ainsi que le nouveau **service-worker.js**. Conserve le dossier **data**, les icônes et `.nojekyll`.
+Décompresse cette archive puis remplace les fichiers de la console à la racine du dépôt existant. **Tous les fichiers livrés, y compris les 28 PNG de créatures, sont volontairement à la racine : aucun sous-dossier n’est nécessaire.**
 
-Les fichiers sont déjà à la racine du ZIP : ne crée pas de dossier supplémentaire autour d’eux sur GitHub Pages.
+Remplace aussi `service-worker.js`, `table.css`, `table.js` et ajoute `creature-icons.js`. Les fichiers `creature-standard-*.png` et `creature-boss-*.png` doivent tous rester à côté de `index.html`.
 
-Recharge une fois le site en ligne et ferme/réouvre les anciennes fenêtres afin de charger la V4 et son nouveau cache. La nouvelle version est identifiable par « V4.0 » dans le titre de la page. La PWA accepte maintenant le portrait et le paysage.
+Après la mise en ligne, recharge une fois le site puis ferme/réouvre les anciennes fenêtres ou la PWA afin de vider l’ancien cache. La nouvelle version est identifiable par « V4.1 » dans le titre de la page.
 
 ## Reprendre ses données
 
@@ -29,13 +29,11 @@ Les données restent locales au navigateur : pas de synchronisation entre appare
 
 ## Vérification réalisée
 
-14 tests de logique exécutés sur le JavaScript livré : dégâts/résistance/immunité, absorption des PV temporaires, soins plafonnés, dégâts à zéro PV, montants invalides, multi-cibles et annulation, changement de mode sans remise à zéro, tours/rounds, sauvegarde/reprise, import V3, affichage des états et échappement du nom, cible et validation du bouton.
+La V4.1 a été contrôlée dans Chromium en deux formats représentatifs (1366×1024 et 390×844) avec 28 créatures de test couvrant les 14 types en version standard et BOSS. Les contrôles automatisés vérifient la présence d’une seule icône par carte/ligne, l’absence de débordement et de chevauchement avec le nom, le changement immédiat standard → BOSS, le verrouillage des boss permanents et l’absence d’erreur JavaScript pendant les rerendus.
 
-Contrôles statiques : syntaxe JavaScript, références des fichiers, identifiants HTML uniques, JSON, manifeste et ressources de cache.
+Un second scénario de régression vérifie l’ajout d’un Gobelin depuis la bibliothèque, le statut BOSS d’instance, dégâts, soins, annulation, états, groupes et le comportement silencieux d’un type personnalisé sans icône. Les 28 PNG ont également été vérifiés en 384×384 avec transparence et marge de sécurité. Tous les JSON, les références de `index.html`, les ressources du cache PWA et les identifiants HTML ont été contrôlés.
 
-Ces tests utilisent un environnement simulé pour les éléments d’interface ; ils ne constituent pas une validation visuelle ni un test Safari/iPad réel. L’affichage tactile reste à vérifier sur les appareils de jeu.
-
-Voir **ANALYSE-ERGONOMIE.md** pour le diagnostic et les choix de conception.
+Ces tests ne remplacent pas un test tactile réel sous Safari/iPadOS. Voir **REVUE-V4.1.md** pour le rapport détaillé et **ANALYSE-ERGONOMIE.md** pour le diagnostic de conception.
 
 ## Attribution
 

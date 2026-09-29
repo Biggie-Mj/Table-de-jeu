@@ -1,7 +1,7 @@
 {
   "name": "ENCOUNTER — Console MJ D&D 5e",
   "short_name": "ENCOUNTER",
-  "description": "ENCOUNTER V4 : suivi de combat lisible sur téléphone et iPad.",
+  "description": "ENCOUNTER V4.1 : suivi de combat lisible sur téléphone et iPad.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
